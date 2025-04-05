@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Budget Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #66BB6A;    /* Changed from #FF6B6B */
+            --secondary: #00BCD4;  /* Changed from #4ECDC4 */
+            --accent: #FFC107;     /* Changed from #FFE66D */
+            --dark: #37474F;      /* Changed from #1A535C */
+            --light: #ECEFF1;     /* Changed from #F7FFF7 */
+            --shadow: rgba(55, 71, 79, 0.2);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+        .wave-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.2)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            z-index: 1;
+            display: block;
+        }
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: none;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20vh); }
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            position: relative;
+        }
+        .logo h1 {
+            font-size: 2rem;
+            color: var(--light);
+            text-shadow: 0 2px 4px var(--shadow);
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .home-section {
+            display: block;
+        }
+        .hero {
+            text-align: center;
+            padding: 6rem 0;
+            color: var(--light);
+        }
+        .hero h2 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 8px var(--shadow);
+            animation: fadeInUp 1s ease;
+        }
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.3s forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: var(--light);
+            color: var(--dark);
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px var(--shadow);
+            cursor: pointer;
+        }
+        .cta-btn:hover {
+            transform: translateY(-5px);
+            background: var(--accent);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 4rem 0;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px var(--shadow);
+        }
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        .feature-card p {
+            color: var(--dark);
+            opacity: 0.8;
+        }
+        .login-section {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+        .login-container .logo h1 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            position: relative;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-container .logo h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        .form-group {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            border: 2px solid var(--light);
+            border-radius: 15px;
+            background: transparent;
+            font-size: 1rem;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+        .form-group label {
+            position: absolute;
+            top: 50%;
+            left: 1.5rem;
+            transform: translateY(-50%);
+            color: var(--dark);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: transparent;
+            padding: 0 0.5rem;
+        }
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label {
+            top: -0.8rem;
+            font-size: 0.8rem;
+            color: var(--primary);
+            background: var(--light);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        .options a {
+            color: var(--dark);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+        .options a:hover {
+            color: var(--primary);
+        }
+        .social-login {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .social-login p {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        .social-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--light);
+            background: transparent;
+            color: var(--dark);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .social-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        .error-message {
+            color: #e63946;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--light);
+            opacity: 0.8;
+        }
+        .pricing-section {
+            padding: 4rem 0;
+            text-align: center;
+        }
+        .pricing-section h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: var(--dark);
+        }
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            justify-content: center;
+        }
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px var(--shadow);
+        }
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        .pricing-card .price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        .pricing-card li {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        .pricing-card .cta-btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        .pricing-card .cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        .contact-section {
+            display: none;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        .contact-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+            box-shadow: 0 15px 30px var(--shadow);
+            backdrop-filter: blur(5px);
+        }
+        .contact-card h2 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .info-item p {
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg" id="waveBg"></div>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <section class="home-section" id="homeSection">
+            <nav class="navbar">
+                <div class="logo">
+                    <h1>Event Budget Tracker</h1>
+                </div>
+                <div class="nav-links">
+                    <a onclick="showSection('home')">Home</a>
+                    <a href="#" onclick="showFeatures()">Features</a>
+                    <a href="#" onclick="showPricing()">Pricing</a>
+                    <a onclick="showSection('contact')">Contact Us</a>
+                    <a onclick="showSection('login')">Login</a>
+                </div>
+            </nav>
+
+            <div class="hero">
+                <h2>Master Your Event Budget</h2>
+                <p>Plan, track, and succeed with the ultimate event budgeting solution.</p>
+                <a onclick="showSection('login')" class="cta-btn">
+                    <i class="fas fa-rocket"></i> Get Started
+                </a>
+            </div>
+
+            <div id="featureSection">
+                <div class="features">
+                    <div class="feature-card">
+                        <i class="fas fa-wallet"></i>
+                        <h3>Smart Budgeting</h3>
+                        <p>Create detailed budgets with category-wise allocation in minutes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Real-time Tracking</h3>
+                        <p>Monitor expenses as they happen with instant updates.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-calculator"></i>
+                        <h3>Budget Planning & Allocation</h3>
+                        <p>Set a total budget and allocate funds for various event categories.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <h3>Expense Tracking & Management</h3>
+                        <p>Compare projected costs with actual spending and manage recurring expenses.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <h3>Income & Revenue Tracking</h3>
+                        <p>Track sponsorships, ticket sales, and merchandise revenue in one place.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Vendor & Payment Management</h3>
+                        <p>Manage vendor contracts, payment due dates, and invoice uploads.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Reports & Analytics</h3>
+                        <p>Visualize spending trends and analyze profit/loss with detailed reports.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-share-alt"></i>
+                        <h3>Collaboration & Sharing</h3>
+                        <p>Enable multi-user access and cloud integration for seamless teamwork.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-plug"></i>
+                        <h3>Integrations & Automation</h3>
+                        <p>Sync with accounting software and automate expense tracking.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-palette"></i>
+                        <h3>Customization & User-Friendly Features</h3>
+                        <p>Personalize categories and enjoy a mobile-friendly interface with dark mode.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-section" id="pricingSection">
+                <h2>Choose Your Plan</h2>
+                <div class="pricing-cards">
+                    <div class="pricing-card">
+                        <h3>Basic</h3>
+                        <div class="price">$19/month</div>
+                        <ul>
+                            <li>Up to 5 Events</li>
+                            <li>Basic Budgeting Tools</li>
+                            <li>Expense Tracking</li>
+                            <li>Email Support</li>
+                        </ul>
+                        <a href="#" class="cta-btn">Get Started</a>
+                    </div>
+                    <div class="pricing-card">
+                        <h3>Pro</h3>
+                        <div class="price">$49/month</div>
+                        <ul>
+                            <li>Unlimited Events</li>
+                            <li>Advanced Budgeting Tools</li>
+                            <li>Income & Vendor Management</li>
+                            <li>Priority Support</li>
+                            <li>Reports & Analytics</li>
+                        </ul>
+                        <a href="#" class="cta-btn">Get Started</a>
+                    </div>
+                    <div class="pricing-card">
+                        <h3>Enterprise</h3>
+                        <div class="price">Contact Us</div>
+                        <ul>
+                            <li>Custom Solutions</li>
+                            <li>Dedicated Account Manager</li>
+                            <li>Integrations & Automation</li>
+                            <li>Team Collaboration</li>
+                            <li>Custom Reporting</li>
+                        </ul>
+                        <a onclick="showSection('contact')" class="cta-btn">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                <p>© 2025 Event Budget Tracker. All rights reserved.</p>
+            </footer>
+        </section>
+
+        <section class="login-section" id="loginSection">
+            <div class="login-container">
+                <div class="logo">
+                    <h1>Event Budget Tracker</h1>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder=" " required>
+                        <label for="email">Email Address</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder=" " required>
+                        <label for="password">Password</label>
+                    </div>
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div class="error-message" id="errorMessage">
+                        Invalid credentials. Please try again.
+                    </div>
+                </form>
+                <div class="options">
+                    <a href="#">Forgot Password?</a>
+                    <a href="#">Sign Up</a>
+                </div>
+                <div class="social-login">
+                    <p>Or login with</p>
+                    <div class="social-buttons">
+                        <button class="social-btn" onclick="window.location.href='https://mail.google.com/'"><i class="fab fa-google"></i></button>
+                        <button class="social-btn" onclick="window.location.href='https://mail.google.com/'"><i class="fab fa-facebook-f"></i></button>
+                        <button class="social-btn" onclick="window.location.href='https://mail.google.com/'"><i class="fab fa-twitter"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact-section" id="contactSection">
+            <div class="contact-card">
+                <h2>Contact Us</h2>
+                <div class="contact-info">
+                    <div class="info-item">
+                        <p>Name: V Akash</p>
+                        <p>Registration Number: 12305271</p>
+                    </div>
+                    <div class="info-item">
+                        <p>Name: Chaitanya Sai Charan</p>
+                        <p>Registration Number: 12301678</p>
+                    </div>
+                    <div class="info-item">
+                        <p>Name: Deepak uriti</p>
+                        <p>Registration Number: 12311620</p>
+                    </div>
+                    <div class="info-item">
+                        <p>Address: Lovely Professional University</p>
+                        <p>Phagwara, Punjab</p>
+                    </div>
+                </div>
+            </div>
+            <a onclick="showSection('home')" class="cta-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </section>
+    </div>
+
+    <script>
+        function showSection(section) {
+            const homeSection = document.getElementById('homeSection');
+            const loginSection = document.getElementById('loginSection');
+            const contactSection = document.getElementById('contactSection');
+            const waveBg = document.getElementById('waveBg');
+            const particles = document.getElementById('particles');
+
+            homeSection.style.display = 'none';
+            loginSection.style.display = 'none';
+            contactSection.style.display = 'none';
+            waveBg.style.display = 'block';
+            particles.style.display = 'none';
+
+            if (section === 'home') {
+                homeSection.style.display = 'block';
+                waveBg.style.display = 'block';
+                particles.style.display = 'none';
+            } else if (section === 'login') {
+                loginSection.style.display = 'flex';
+                waveBg.style.display = 'none';
+                particles.style.display = 'block';
+            } else if (section === 'contact') {
+                contactSection.style.display = 'block';
+                waveBg.style.display = 'none';
+                particles.style.display = 'none';
+            }
+        }
+
+        function showFeatures() {
+            document.getElementById('featureSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showPricing() {
+            document.getElementById('pricingSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (email === "demo@eventbudget.com" && password === "password123") {
+                window.location.href = "eventpage.html";
+            } else {
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        const particles = document.querySelectorAll('.particle');
+        particles.forEach(particle => {
+            const randomX = Math.random() * 10 - 5;
+            particle.style.animation = `float 15s infinite ease-in-out, sway 5s infinite ease-in-out ${Math.random() * 5}s`;
+            particle.style.left = `${parseFloat(particle.style.left) + randomX}%`;
+        });
+
+        const styleSheet = document.styleSheets[0];
+        styleSheet.insertRule(`
+            @keyframes sway {
+                0%, 100% { transform: translateX(0); }
+                50% { transform: translateX(20px); }
+            }
+        `, styleSheet.cssRules.length);
+
+        const featureCards = document.querySelectorAll('.feature-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.5s ease forwards';
+                }
+            });
+        }, { threshold: 0.3 });
+
+        featureCards.forEach(card => observer.observe(card));
+
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (document.getElementById('homeSection').style.display !== 'none' && window.scrollY > 50) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.1)';
+                navbar.style.backdropFilter = 'blur(5px)';
+                navbar.style.padding = '1rem 0';
+            } else {
+                navbar.style.background = 'transparent';
+                navbar.style.backdropFilter = 'none';
+                navbar.style.padding = '1.5rem 0';
+            }
+        });
+    </script>
+</body>
+</html>

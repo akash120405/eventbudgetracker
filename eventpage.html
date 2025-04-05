@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Budget Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #66BB6A;    /* Changed from #FF6B6B */
+            --secondary: #00BCD4;  /* Changed from #4ECDC4 */
+            --accent: #FFC107;     /* Changed from #FFE66D */
+            --dark: #37474F;      /* Changed from #1A535C */
+            --light: #ECEFF1;     /* Changed from #F7FFF7 */
+            --shadow: rgba(55, 71, 79, 0.2);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: url('https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(55, 71, 79, 0.7);
+            z-index: 1;
+        }
+        .wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            opacity: 0.1;
+            transform: rotate(30deg);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            color: var(--dark);
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .content {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .module {
+            flex: 1;
+            min-width: 300px;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 2rem;
+            position: relative;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .module:hover {
+            transform: scale(1.03);
+        }
+        .module h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-field {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .input-field label {
+            position: absolute;
+            top: -0.5rem;
+            left: 1rem;
+            background: var(--light);
+            padding: 0 0.5rem;
+            font-size: 0.8rem;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        .input-field input, .input-field select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--secondary);
+            border-radius: 15px;
+            background: transparent;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .input-field input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 10px rgba(102, 187, 106, 0.3);
+        }
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 187, 106, 0.4);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            padding: 1.5rem;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+        .expense-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1.5rem 0;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .expense-item:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateX(5px);
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+        @media (max-width: 768px) {
+            .module {
+                max-width: 100%;
+            }
+        }
+        /* Updated Chatbot styles to match Gemini Chatbot */
+        .chatbot-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 400px; /* Fixed height for chat window */
+        }
+        .chatbot-header {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: var(--light);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .message-content {
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+        }
+        .user-message {
+            flex-direction: row-reverse;
+        }
+        .user-message .message-content {
+            background-color: var(--secondary);
+            color: white;
+            margin-right: 10px;
+        }
+        .bot-message .message-content {
+            background-color: var(--dark);
+            color: white;
+            margin-left: 10px;
+        }
+        .profile-image {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .chat-input-container {
+            display: flex;
+            padding: 10px 0;
+        }
+        #userInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 15px;
+            background: transparent;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        #userInput:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 10px rgba(102, 187, 106, 0.3);
+        }
+        .chatbot-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .chatbot-btn:hover {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 187, 106, 0.4);
+        }
+        .chatbot-btn:disabled {
+            background: linear-gradient(45deg, #4a7a4a, #007a8c);
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="wrapper">
+        <div class="hero">
+            <h1>Event Budget Tracker</h1>
+        </div>
+        <div class="content">
+            <div class="module">
+                <h2><i class="fas fa-wallet"></i> Budget Setup</h2>
+                <div class="input-field">
+                    <label>Total Budget</label>
+                    <input type="number" id="totalBudget" placeholder="Enter amount ($)">
+                </div>
+                <div class="stats-grid">
+                    <div class="input-field">
+                        <label>Venue</label>
+                        <input type="number" id="venue" placeholder="$">
+                    </div>
+                    <div class="input-field">
+                        <label>Catering</label>
+                        <input type="number" id="catering" placeholder="$">
+                    </div>
+                    <div class="input-field">
+                        <label>Entertainment</label>
+                        <input type="number" id="entertainment" placeholder="$">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="setBudget()">
+                    <i class="fas fa-check"></i> Set Budget
+                </button>
+            </div>
+
+            <div class="module">
+                <h2><i class="fas fa-money-bill-wave"></i> Track Expenses</h2>
+                <div class="stats-grid">
+                    <div class="input-field">
+                        <label>Category</label>
+                        <select id="expenseCategory">
+                            <option value="venue">Venue</option>
+                            <option value="catering">Catering</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="decorations">Decorations</option>
+                            <option value="invitations">Invitations</option>
+                            <option value="transportation">Transportation</option>
+                            <option value="gifts">Gifts</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label>Amount</label>
+                        <input type="number" id="expenseAmount" placeholder="$">
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label>Description</label>
+                    <input type="text" id="expenseDesc" placeholder="What did you spend on?">
+                </div>
+                <button class="action-btn" onclick="addExpense()">
+                    <i class="fas fa-plus"></i> Add Expense
+                </button>
+                <div class="expense-list" id="expenseList"></div>
+            </div>
+
+            <div class="module">
+                <h2><i class="fas fa-chart-pie"></i> Budget Insights</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Budget</h3>
+                        <p id="totalBudgetDisplay">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Spent</h3>
+                        <p id="spentDisplay">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Remaining</h3>
+                        <p id="remainingDisplay">$0</p>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Updated Chatbot Section with Gemini Chatbot -->
+        <div class="chatbot-container">
+            <h2 class="chatbot-header">Chatbot</h2>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-container">
+                <input type="text" id="userInput" placeholder="Type your message...">
+                <button class="chatbot-btn" id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let totalBudget = 0;
+        let spentAmount = 0;
+        const expenses = [];
+        const expenseCategories = {
+            venue: 0,
+            catering: 0,
+            entertainment: 0,
+            decorations: 0,
+            invitations: 0,
+            transportation: 0,
+            gifts: 0,
+            other: 0
+        };
+
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        const budgetChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(expenseCategories),
+                datasets: [{
+                    label: 'Expenses by Category',
+                    data: Object.values(expenseCategories),
+                    backgroundColor: [
+                        '#66BB6A',
+                        '#00BCD4',
+                        '#FFC107',
+                        '#FF5722',
+                        '#9C27B0',
+                        '#3F51B5',
+                        '#2196F3',
+                        '#FF9800'
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Expenses Distribution'
+                    }
+                }
+            }
+        });
+
+        function setBudget() {
+            totalBudget = parseFloat(document.getElementById('totalBudget').value) || 0;
+            document.getElementById('totalBudgetDisplay').innerText = `$${totalBudget.toFixed(2)}`;
+            updateRemaining();
+        }
+
+        function addExpense() {
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const description = document.getElementById('expenseDesc').value;
+
+            if (amount > 0) {
+                spentAmount += amount;
+                expenses.push({ category, amount, description });
+                expenseCategories[category] += amount;
+                updateExpenseList();
+                updateSpent();
+                updateRemaining();
+                updateChart();
+                clearExpenseInputs();
+            } else {
+                alert("Please enter a valid amount.");
+            }
+        }
+
+        function updateExpenseList() {
+            const expenseList = document.getElementById('expenseList');
+            expenseList.innerHTML = '';
+            expenses.forEach(expense => {
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                item.innerHTML = `<span>${expense.category}: ${expense.description}</span><span>$${expense.amount.toFixed(2)}</span>`;
+                expenseList.appendChild(item);
+            });
+        }
+
+        function updateSpent() {
+            document.getElementById('spentDisplay').innerText = `$${spentAmount.toFixed(2)}`;
+        }
+
+        function updateRemaining() {
+            const remaining = totalBudget - spentAmount;
+            document.getElementById('remainingDisplay').innerText = `$${remaining.toFixed(2)}`;
+        }
+
+        function updateChart() {
+            budgetChart.data.datasets[0].data = Object.values(expenseCategories);
+            budgetChart.update();
+        }
+
+        function clearExpenseInputs() {
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDesc').value = '';
+        }
+
+        // Gemini Chatbot Integration
+        const API_KEY = 'AIzaSyBDxVGnCrTOll1L7Vul_SqQRoS5I6KNAk8'; 
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('send-button');
+
+        async function generateResponse(prompt) {
+            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate response');
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function cleanMarkdown(text) {
+            return text
+                .replace(/#{1,6}\s?/g, '')
+                .replace(/\*\*/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        function addMessage(message, isUser) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+
+            const profileImage = document.createElement('img');
+            profileImage.classList.add('profile-image');
+            profileImage.src = isUser ? 'user.jpg' : 'bot.jpg'; // Ensure these images exist
+            profileImage.alt = isUser ? 'User' : 'Bot';
+
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            messageContent.textContent = message;
+
+            messageElement.appendChild(profileImage);
+            messageElement.appendChild(messageContent);
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function handleUserInput() {
+            const userMessage = userInput.value.trim();
+            if (userMessage) {
+                addMessage(userMessage, true);
+                userInput.value = '';
+                sendButton.disabled = true;
+                userInput.disabled = true;
+
+                try {
+                    const botMessage = await generateResponse(userMessage);
+                    addMessage(cleanMarkdown(botMessage), false);
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Sorry, I encountered an error. Please try again.', false);
+                } finally {
+                    sendButton.disabled = false;
+                    userInput.disabled = false;
+                    userInput.focus();
+                }
+            }
+        }
+
+        sendButton.addEventListener('click', handleUserInput);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleUserInput();
+            }
+        });
+    </script>
+</body>
+</html>
